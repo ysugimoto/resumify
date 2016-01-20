@@ -5,7 +5,8 @@ Capture screenshot and make PDF on your HTML presentation.
 ## Requirements
 
 - `node.js`: main program  ( recommend 4.2.x, at least 4.x )
-- `ImageMagick` PDF creation ( install and set PATH )
+- `electron`: Capturing screenshot ( this package has dependency installtion `electron-prebuilt` )
+- `ImageMagick`: PDF creation ( install and set PATH )
 
 ## Installation
 
