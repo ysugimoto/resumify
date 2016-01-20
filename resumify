@@ -2,7 +2,7 @@
 
 "use strict";
 
-const VERSION = "0.8.0";
+const VERSION = "0.8.2";
 const RED     = "\u001b[31m";
 const GREEN   = "\u001b[32m";
 const WHITE   = "\u001b[37m";
