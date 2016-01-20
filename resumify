@@ -120,6 +120,8 @@ try {
     fs.mkdirSync(shotDir, "0777");
 }
 
+Logger.info("[resumify] Screenshot saveing to " + shotDir + ".");
+
 fs.writeFileSync(
     path.join(__dirname, "/main.js"),
     stub.replace(/__WIDTH__/g, size[0])
@@ -146,14 +148,19 @@ proc.on("close", (code) => {
         return;
     }
     Logger.info("Creating PDF to " + path.join(process.cwd(), outFile) + " ...");
-    const pdf = child.spawn("convert", [
-        shotDir + "/*",
-        path.join(process.cwd(), outFile)
-    ]);
+
+    // Create "ordered" screen-shot list
+    let screenshots = [];
+    for ( let i = 1; i <= end; ++i ) {
+        screenshots.push(shotDir + "/shot" + i + ".png");
+    }
+    screenshots.push(path.join(process.cwd(), outFile));
+
+    const pdf = child.spawn("convert", screenshots);
     pdf.stderr.on("data", (e) => {
         Logger.error("[IMAGEMAGICK STDERR] " + e.toString(), true);
     });
-    pdf.stderr.on("data", (e) => {
+    pdf.stdout.on("data", (e) => {
         Logger.info("[IMAGEMAGICK STDOUT]: " + e.toString(), true);
     });
     pdf.on("close", () => {
