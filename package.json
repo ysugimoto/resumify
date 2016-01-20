@@ -1,0 +1,28 @@
+{
+  "name": "resumify",
+  "version": "0.8.0",
+  "description": "Capture screenshot and make PDF on your HTML presentation",
+  "main": "main.js",
+  "bin": "./resumify",
+  "dependencies": {
+    "electron-prebuilt": "^0.36.4",
+    "minimist": "^1.2.0"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ysugimoto/resumify.git"
+  },
+  "keywords": [
+    "electron",
+    "talkie"
+  ],
+  "author": "Yoshiaki Sugimoto",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ysugimoto/resumify/issues"
+  },
+  "homepage": "https://github.com/ysugimoto/resumify#readme"
+}

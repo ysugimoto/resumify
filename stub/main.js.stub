@@ -1,0 +1,64 @@
+"use strict";
+
+const electron      = require("electron");
+const app           = electron.app;
+const BrowserWindow = electron.BrowserWindow;
+const fs            = require("fs");
+const path          = require("path");
+const WIDTH         = __WIDTH__;
+const HEIGHT        = __HEIGHT__;
+const URL           = "__URL__";
+const WORKINGDIR    = "__WORKINGDIR__";
+const SKIPS         = [__SKIPS__];
+const END           = __END__;
+
+app.on("window-all-closed", function() {
+    if ( process.platform !== "darwin" ) {
+        app.quit();
+    }
+});
+
+let mainWindow;
+
+app.on("ready", function() {
+    mainWindow = new BrowserWindow({
+        width: WIDTH,
+        height: HEIGHT
+    });
+    mainWindow.on("closed", function() {
+        mainWindow = null;
+    });
+    openSlide(1, true);
+});
+
+function openSlide(pageNumber, isFirst) {
+    if ( SKIPS.indexOf(pageNumber) !== -1 ) {
+        openSlide(pageNumber + 1, false);
+        return;
+    }
+    mainWindow.loadURL(URL + "#" + pageNumber);
+    const webContents = mainWindow.webContents;
+    webContents.executeJavaScript(
+        "(function(c) { c && (c.style.display = 'none'); })(document.getElementById('control'));"
+    );
+    setTimeout(function() {
+        console.log("Taking screenshot " + pageNumber + " of " + END + "...");
+        mainWindow.capturePage({
+            x:      0,
+            y:      0,
+            width:  WIDTH,
+            height: HEIGHT
+        }, function(image) {
+            fs.writeFile(path.join(WORKINGDIR, "/shot" + pageNumber + ".png"), image.toPng(), function(err) {
+                if ( err ) {
+                    console.log("Failed to screen shot");
+                } else if ( pageNumber === END ) {
+                    console.log("Screenshot has taken!");
+                    app.quit();
+                } else {
+                    openSlide(pageNumber + 1, false);
+                }
+            });
+        });
+    }, 3000);
+}

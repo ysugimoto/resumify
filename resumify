@@ -1,0 +1,162 @@
+#!/usr/bin/env node
+
+"use strict";
+
+const VERSION = "0.8.0";
+const RED     = "\u001b[31m";
+const GREEN   = "\u001b[32m";
+const WHITE   = "\u001b[37m";
+const YELLOW  = "\u001b[33m";
+const RESET   = "\u001b[0m";
+
+class Logger {
+    static error(message, direct) {
+        Logger._write(RED, message, direct);
+    }
+    static info(message, direct) {
+        Logger._write(WHITE, message, direct);
+    }
+    static warn(message, direct) {
+        Logger._write(YELLOW, message, direct);
+    }
+    static ok(message, direct) {
+        Logger._write(GREEN, message, direct);
+    }
+    static _write(color, message, direct) {
+        if ( direct ) {
+            process.stdout.write(color + message + RESET);
+        } else {
+            console.log(color + message + RESET);
+        }
+    }
+}
+
+function showUsage() {
+    console.log("====================================================================");
+    console.log("resumify - Capture screenshot and make PDF on your HTML presentation");
+    console.log("====================================================================");
+    console.log("Usage:");
+    console.log(" resumify [options]");
+    console.log("Options:");
+    console.log("  -s, --size   : Capture screen size, spcified [width]x[height] format.");
+    console.log("                 Default is 1280x800.");
+    console.log("      --skip   : Skip capture slide number, like 2,3,4,...");
+    console.log("  -e, --end    : End of slide");
+    console.log("  -u, --url    : Remote slide URL. If not supplied,");
+    console.log("                 we detect html file (index.html, others...) automatically.");
+    console.log("  -h, --help   : Show this help");
+    console.log("  -v, --version: Show program version");
+    console.log("  -o, --output : Determine output filename. Default is \"slide.pdf\".");
+}
+
+const args = require("minimist")(process.argv.slice(2));
+if ( args.h || args.help ) {
+    showUsage();
+    process.exit();
+} else if ( args.v || args.version ) {
+    console.log("resumify v" + VERSION);
+    process.exit();
+}
+
+const rand     = Date.now();
+const path     = require("path");
+const electron = path.join(__dirname, "/node_modules/electron-prebuilt/cli.js");
+const child    = require("child_process");
+const fs       = require("fs");
+const stub     = fs.readFileSync(path.join(__dirname, "/stub/main.js.stub"), {encoding: "utf8"});
+const size     = (args.s || args.size || "1280x800").split("x");
+const skips    = (args.skip || "").toString().split(",").filter((s) => { return s.trim(); });
+const end      = args.e || args.end || 1;
+const outFile  = args.o || args.output || "slide.pdf";
+const url      = ((workingDir) => {
+    // Check command-line parameter
+    if ( args.u || args.url ) {
+        Logger.info("Using remote URL: " + (args.u || args.url));
+        return args.u || args.url;
+    }
+    let indexFile;
+    try {
+        // detect index.html
+        indexFile = path.join(workingDir, "/index.html");
+        fs.statSync(indexFile);
+        Logger.info("Using local file: " + indexFile);
+        return "file://" + indexFile;
+    } catch ( e ) {
+        // detect HTML file in working directory
+        const fileList = fs.readdirSync(workingDir);
+        let index    = -1;
+
+        while ( fileList[++index] ) {
+            if ( path.extname(fileList[index]) === ".html" ) {
+                indexFile = path.join(workingDir, fileList[index]);
+                Logger.info("Using local file: " + indexFile);
+                return "file://" + indexFile;
+            }
+        }
+        return "";
+    }
+})(process.cwd());
+
+// validate
+if ( /^[0-9]+x[0-9]+$/.test(size) ) {
+    Logger.error("[ERROR] Invalid size format. Size format must be like '1280x800'.");
+    process.exit(1);
+}
+if ( url === "" ) {
+    Logger.error("[ERROR] Slide URL/file not found.");
+    Logger.warn("If determine external URL, use '-u' or '--url' option.");
+    Logger.warn("Or if use local HTML file, put HTML file in working directory.");
+    process.exit(1);
+}
+if ( ! /\.pdf$/.test(outFile) ) {
+    Logger.error("[ERROR] Output filename error. File extension must be \".pdf\".");
+    process.exit(1);
+}
+
+const shotDir = path.join(process.cwd(), "shot-" + rand);
+try {
+    fs.statSync(shotDir);
+} catch ( e ) {
+    fs.mkdirSync(shotDir, "0777");
+}
+
+fs.writeFileSync(
+    path.join(__dirname, "/main.js"),
+    stub.replace(/__WIDTH__/g, size[0])
+        .replace(/__HEIGHT__/g, size[1])
+        .replace(/__URL__/g, url)
+        .replace(/__WORKINGDIR__/g, shotDir)
+        .replace(/__SKIPS__/g, skips.join(","))
+        .replace(/__END__/g, end)
+);
+
+Logger.info("Opening Slide: " + url);
+const proc = child.spawn("node", [electron, "."], {cwd: __dirname});
+
+proc.stderr.on("data", (e) => {
+    Logger.error("[ELECTRON STDERR] " + e.toString(), true);
+});
+proc.stdout.on("data", (e) => {
+    Logger.info("[ELECTRON STDOUT] " + e.toString(), true);
+});
+proc.on("close", (code) => {
+    if ( code ) {
+        Logger.error("[ABORT] Process aborted by previous error.");
+        process.exit(code);
+        return;
+    }
+    Logger.info("Creating PDF to " + path.join(process.cwd(), outFile) + " ...");
+    const pdf = child.spawn("convert", [
+        shotDir + "/*",
+        path.join(process.cwd(), outFile)
+    ]);
+    pdf.stderr.on("data", (e) => {
+        Logger.error("[IMAGEMAGICK STDERR] " + e.toString(), true);
+    });
+    pdf.stderr.on("data", (e) => {
+        Logger.info("[IMAGEMAGICK STDOUT]: " + e.toString(), true);
+    });
+    pdf.on("close", () => {
+        Logger.ok("PDF file created successfully!");
+    });
+});
