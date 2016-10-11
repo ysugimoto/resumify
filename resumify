@@ -49,30 +49,41 @@ function showUsage() {
     console.log("  -o, --output : Determine output filename. Default is \"slide.pdf\".");
 }
 
-const args = require("minimist")(process.argv.slice(2));
-if ( args.h || args.help ) {
+const minimist = require("minimist");
+const args = minimist(process.argv.slice(2), {
+    alias: {
+        s: "size",
+        e: "end",
+        u: "url",
+        h: "help",
+        v: "version",
+        o: 'output'
+    }
+});
+
+if ( args.help ) {
     showUsage();
     process.exit();
-} else if ( args.v || args.version ) {
+} else if ( args.version ) {
     console.log("resumify v" + VERSION);
     process.exit();
 }
 
 const rand     = Date.now();
 const path     = require("path");
-const electron = path.join(__dirname, "/node_modules/electron-prebuilt/cli.js");
+const electron = path.join(__dirname, "/node_modules/electron/cli.js");
 const child    = require("child_process");
 const fs       = require("fs");
 const stub     = fs.readFileSync(path.join(__dirname, "/stub/main.js.stub"), {encoding: "utf8"});
-const size     = (args.s || args.size || "1280x800").split("x");
+const size     = (args.size || "1280x800").split("x");
 const skips    = (args.skip || "").toString().split(",").filter((s) => { return s.trim(); });
-const end      = args.e || args.end || 1;
-const outFile  = args.o || args.output || "slide.pdf";
+const end      = args.end || 1;
+const outFile  = args.output || "slide.pdf";
 const url      = ((workingDir) => {
     // Check command-line parameter
-    if ( args.u || args.url ) {
-        Logger.info("Using remote URL: " + (args.u || args.url));
-        return args.u || args.url;
+    if ( args.url ) {
+        Logger.info("Using remote URL: " + (args.url));
+        return args.url;
     }
     let indexFile;
     try {
