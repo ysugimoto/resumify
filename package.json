@@ -2,14 +2,10 @@
   "name": "resumify",
   "version": "0.8.2",
   "description": "Capture screenshot and make PDF on your HTML presentation",
-  "main": "main.js",
   "bin": "./resumify",
   "dependencies": {
     "electron": "^1.4.3",
     "minimist": "^1.2.0"
-  },
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
