@@ -60,7 +60,7 @@ if ( args.h || args.help ) {
 
 const rand     = Date.now();
 const path     = require("path");
-const electron = path.join(__dirname, "/node_modules/electron-prebuilt/cli.js");
+const electron = path.join(__dirname, "/node_modules/electron/cli.js");
 const child    = require("child_process");
 const fs       = require("fs");
 const stub     = fs.readFileSync(path.join(__dirname, "/stub/main.js.stub"), {encoding: "utf8"});
