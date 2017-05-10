@@ -2,7 +2,7 @@
 
 "use strict";
 
-const VERSION = "0.8.2";
+const VERSION = "0.8.4";
 const RED     = "\u001b[31m";
 const GREEN   = "\u001b[32m";
 const WHITE   = "\u001b[37m";
@@ -131,7 +131,7 @@ try {
     fs.mkdirSync(shotDir, "0777");
 }
 
-Logger.info("[resumify] Screenshot saveing to " + shotDir + ".");
+Logger.info("[resumify] Screenshot saving to " + shotDir + ".");
 
 fs.writeFileSync(
     path.join(__dirname, "/main.js"),
@@ -144,7 +144,7 @@ fs.writeFileSync(
 );
 
 Logger.info("Opening Slide: " + url);
-const proc = child.spawn("node", [electron, "."], {cwd: __dirname});
+const proc = child.spawn("node", [electron, "./main.js"], {cwd: __dirname});
 
 proc.stderr.on("data", (e) => {
     Logger.error("[ELECTRON STDERR] " + e.toString(), true);
