@@ -1,6 +1,6 @@
 {
   "name": "resumify",
-  "version": "0.8.4",
+  "version": "0.8.5",
   "description": "Capture screenshot and make PDF on your HTML presentation",
   "bin": "./resumify",
   "dependencies": {
