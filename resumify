@@ -163,6 +163,9 @@ proc.on("close", (code) => {
     // Create "ordered" screen-shot list
     let screenshots = [];
     for ( let i = 1; i <= end; ++i ) {
+        if (skips.includes(i.toString())) {
+          continue;
+        }
         screenshots.push(shotDir + "/shot" + i + ".png");
     }
     screenshots.push(path.join(process.cwd(), outFile));
