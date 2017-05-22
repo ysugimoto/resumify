@@ -2,7 +2,7 @@
 
 "use strict";
 
-const VERSION = "0.8.4";
+const VERSION = "0.8.6";
 const RED     = "\u001b[31m";
 const GREEN   = "\u001b[32m";
 const WHITE   = "\u001b[37m";
@@ -163,7 +163,7 @@ proc.on("close", (code) => {
     // Create "ordered" screen-shot list
     let screenshots = [];
     for ( let i = 1; i <= end; ++i ) {
-        if (skips.includes(i.toString())) {
+        if (skips.indexOf(i.toString()) !== -1) {
           continue;
         }
         screenshots.push(shotDir + "/shot" + i + ".png");
