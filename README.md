@@ -45,6 +45,8 @@ Note that URL must be fully format ( including .html ).
 
 | option        | description                                         | default   |
 |---------------|-----------------------------------------------------|-----------|
+| -t, --type    | Slide control type. Can accepts `url` or `scroll`.  | url       |
+| -s, --size    | Capture screen size with `[width]x[height]` format. | 1280x800  |
 | -s, --size    | Capture screen size with `[width]x[height]` format. | 1280x800  |
 | --skip        | Skip capturing slide number like `2,3,4,...` format | -         |
 | -e, --end     | End of slide number                                 | 1         |
@@ -52,6 +54,12 @@ Note that URL must be fully format ( including .html ).
 | -h, --help    | Show help                                           | -         |
 | -v, --version | Show program version                                | -         |
 | -o, --output  | Determine output PDF filename                       | slide.pdf |
+
+### Slide Type
+
+The new option of `-t, --type`, which is determine how slide is controlled.
+If type is `url`, slide will move by URL hash like `#1`, `#2`, ...
+Other type is `scroll`, slide will move by page scrolling.
 
 ## Author
 

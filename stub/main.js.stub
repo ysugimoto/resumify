@@ -11,6 +11,7 @@ const URL           = "__URL__";
 const WORKINGDIR    = "__WORKINGDIR__";
 const SKIPS         = [__SKIPS__];
 const END           = __END__;
+const SLIDE_TYPE    = "__SLIDE_TYPE__";
 
 app.on("window-all-closed", function() {
     if ( process.platform !== "darwin" ) {
@@ -28,18 +29,28 @@ app.on("ready", function() {
     mainWindow.on("closed", function() {
         mainWindow = null;
     });
-    openSlide(1, true);
+    switch (SLIDE_TYPE) {
+        case "url":
+            openSlideTypeURL(1);
+            break;
+        case "scroll":
+            openSlideTypeScroll();
+            break;
+        default:
+            console.log("Unexpected slide type: " + SLIDE_TYPE);
+            app.quit();
+    }
 });
 
-function openSlide(pageNumber, isFirst) {
+function openSlideTypeURL(pageNumber) {
     if ( SKIPS.indexOf(pageNumber) !== -1 ) {
-        openSlide(pageNumber + 1, false);
+        openSlideTypeURL(pageNumber + 1, false);
         return;
     }
     mainWindow.loadURL(URL + "#" + pageNumber);
     const webContents = mainWindow.webContents;
     webContents.executeJavaScript(
-        "(function(c) { c && (c.style.display = 'none'); })(document.getElementById('control'));"
+        "(function(c) { c && (c.style.display = 'none'); })(document.querySelector('tk-pager' , '#control')));"
     );
     setTimeout(function() {
         console.log("Taking screenshot " + pageNumber + " of " + END + "...");
@@ -56,9 +67,54 @@ function openSlide(pageNumber, isFirst) {
                     console.log("Screenshot has taken!");
                     app.quit();
                 } else {
-                    openSlide(pageNumber + 1, false);
+                    openSlide(pageNumber + 1);
                 }
             });
         });
     }, 3000);
+}
+
+function openSlideTypeScroll() {
+    mainWindow.loadURL(URL);
+    const webContents = mainWindow.webContents;
+    webContents.on('did-finish-load', () => {
+        webContents.executeJavaScript(
+            "(function(c) { c && (c.style.display = 'none'); })(document.querySelector('tk-pager'));"
+        ).then(() => {
+            const next = function(pageNumber) {
+                webContents.executeJavaScript(
+                    "(function(e) { e.initEvent('keydown', true, true); e.keyCode = 39; document.dispatchEvent(e); })(document.createEvent('Event'));",
+                    true,
+                ).then(result => {
+                    handler(pageNumber + 1);
+                });
+            };
+
+            const handler = function(pageNumber) {
+                if ( SKIPS.indexOf(pageNumber) !== -1 ) {
+                    setTimeout(function() { next(pageNumber); }, 1000);
+                    return;
+                }
+                console.log("Taking screenshot " + pageNumber + " of " + END + "...");
+                mainWindow.capturePage({
+                    x:      0,
+                    y:      0,
+                    width:  WIDTH,
+                    height: HEIGHT
+                }, function(image) {
+                    fs.writeFile(path.join(WORKINGDIR, "/shot" + pageNumber + ".png"), image.toPng(), function(err) {
+                        if ( err ) {
+                            console.log("Failed to screen shot");
+                        } else if ( pageNumber === END ) {
+                            console.log("Screenshot has taken!");
+                            app.quit();
+                        } else {
+                            setTimeout(function() { next(pageNumber); }, 1000);
+                        }
+                    });
+                });
+            };
+            handler(0);
+        });
+    });
 }
