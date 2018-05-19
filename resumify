@@ -38,6 +38,7 @@ function showUsage() {
     console.log("Usage:");
     console.log(" resumify [options]");
     console.log("Options:");
+    console.log("  -t, --type   : Move slide type, can accepts 'url' or 'scroll'.");
     console.log("  -s, --size   : Capture screen size, spcified [width]x[height] format.");
     console.log("                 Default is 1280x800.");
     console.log("      --skip   : Skip capture slide number, like 2,3,4,...");
@@ -57,7 +58,8 @@ const args = minimist(process.argv.slice(2), {
         u: "url",
         h: "help",
         v: "version",
-        o: 'output'
+        o: "output",
+        t: "type"
     }
 });
 
@@ -69,17 +71,18 @@ if ( args.help ) {
     process.exit();
 }
 
-const rand     = Date.now();
-const path     = require("path");
-const electron = path.join(__dirname, "/node_modules/electron/cli.js");
-const child    = require("child_process");
-const fs       = require("fs");
-const stub     = fs.readFileSync(path.join(__dirname, "/stub/main.js.stub"), {encoding: "utf8"});
-const size     = (args.size || "1280x800").split("x");
-const skips    = (args.skip || "").toString().split(",").filter((s) => { return s.trim(); });
-const end      = args.end || 1;
-const outFile  = args.output || "slide.pdf";
-const url      = ((workingDir) => {
+const rand      = Date.now();
+const path      = require("path");
+const electron  = path.join(__dirname, "/node_modules/electron/cli.js");
+const child     = require("child_process");
+const fs        = require("fs");
+const stub      = fs.readFileSync(path.join(__dirname, "/stub/main.js.stub"), {encoding: "utf8"});
+const size      = (args.size || "1280x800").split("x");
+const skips     = (args.skip || "").toString().split(",").filter((s) => { return s.trim(); });
+const end       = args.end || 1;
+const outFile   = args.output || "slide.pdf";
+const slideType = args.type || "url";
+const url       = ((workingDir) => {
     // Check command-line parameter
     if ( args.url ) {
         Logger.info("Using remote URL: " + (args.url));
@@ -141,6 +144,7 @@ fs.writeFileSync(
         .replace(/__WORKINGDIR__/g, shotDir)
         .replace(/__SKIPS__/g, skips.join(","))
         .replace(/__END__/g, end)
+        .replace(/__SLIDE_TYPE__/g, slideType)
 );
 
 Logger.info("Opening Slide: " + url);
