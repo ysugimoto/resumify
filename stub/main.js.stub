@@ -50,7 +50,7 @@ function openSlideTypeURL(pageNumber) {
     mainWindow.loadURL(URL + "#" + pageNumber);
     const webContents = mainWindow.webContents;
     webContents.executeJavaScript(
-        "(function(c) { c && (c.style.display = 'none'); })(document.querySelector('tk-pager' , '#control')));"
+        "(function(c) { c && (c.style.display = 'none'); })(document.querySelector('.tk-pager, #control'));"
     );
     setTimeout(function() {
         console.log("Taking screenshot " + pageNumber + " of " + END + "...");
