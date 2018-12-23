@@ -4,7 +4,7 @@
   "description": "Capture screenshot and make PDF on your HTML presentation",
   "bin": "./resumify",
   "dependencies": {
-    "electron": "^1.4.3",
+    "electron": "^4.0.0",
     "minimist": "^1.2.0"
   },
   "repository": {
