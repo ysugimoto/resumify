@@ -60,14 +60,14 @@ function openSlideTypeURL(pageNumber) {
             width:  WIDTH,
             height: HEIGHT
         }, function(image) {
-            fs.writeFile(path.join(WORKINGDIR, "/shot" + pageNumber + ".png"), image.toPng(), function(err) {
+            fs.writeFile(path.join(WORKINGDIR, "/shot" + pageNumber + ".png"), image.toPNG(), function(err) {
                 if ( err ) {
                     console.log("Failed to screen shot");
                 } else if ( pageNumber === END ) {
                     console.log("Screenshot has taken!");
                     app.quit();
                 } else {
-                    openSlide(pageNumber + 1);
+                    openSlideTypeURL(pageNumber + 1);
                 }
             });
         });
